@@ -1,4 +1,4 @@
-module github.com/go-sql-driver/mysql
+module pkg.gostartkit.com/mysql
 
 go 1.18
 
