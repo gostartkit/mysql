@@ -112,6 +112,8 @@ func (mf *mysqlField) typeDatabaseName() string {
 		return "VARCHAR"
 	case fieldTypeYear:
 		return "YEAR"
+	case fieldTypeVector:
+		return "VECTOR"
 	default:
 		return ""
 	}
@@ -126,6 +128,7 @@ var (
 	scanTypeInt64      = reflect.TypeOf(int64(0))
 	scanTypeNullFloat  = reflect.TypeOf(sql.NullFloat64{})
 	scanTypeNullInt    = reflect.TypeOf(sql.NullInt64{})
+	scanTypeNullUint   = reflect.TypeOf(sql.Null[uint64]{})
 	scanTypeNullTime   = reflect.TypeOf(sql.NullTime{})
 	scanTypeUint8      = reflect.TypeOf(uint8(0))
 	scanTypeUint16     = reflect.TypeOf(uint16(0))
@@ -134,7 +137,7 @@ var (
 	scanTypeString     = reflect.TypeOf("")
 	scanTypeNullString = reflect.TypeOf(sql.NullString{})
 	scanTypeBytes      = reflect.TypeOf([]byte{})
-	scanTypeUnknown    = reflect.TypeOf(new(interface{}))
+	scanTypeUnknown    = reflect.TypeOf(new(any))
 )
 
 type mysqlField struct {
@@ -183,6 +186,9 @@ func (mf *mysqlField) scanType() reflect.Type {
 			}
 			return scanTypeInt64
 		}
+		if mf.flags&flagUnsigned != 0 {
+			return scanTypeNullUint
+		}
 		return scanTypeNullInt
 
 	case fieldTypeFloat:
@@ -198,7 +204,7 @@ func (mf *mysqlField) scanType() reflect.Type {
 		return scanTypeNullFloat
 
 	case fieldTypeBit, fieldTypeTinyBLOB, fieldTypeMediumBLOB, fieldTypeLongBLOB,
-		fieldTypeBLOB, fieldTypeVarString, fieldTypeString, fieldTypeGeometry:
+		fieldTypeBLOB, fieldTypeVarString, fieldTypeString, fieldTypeGeometry, fieldTypeVector:
 		if mf.charSet == binaryCollationID {
 			return scanTypeBytes
 		}

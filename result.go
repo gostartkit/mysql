@@ -8,6 +8,8 @@
 
 package mysql
 
+import "slices"
+
 import "database/sql/driver"
 
 // Result exposes data not available through *connection.Result.
@@ -15,9 +17,8 @@ import "database/sql/driver"
 // This is accessible by executing statements using sql.Conn.Raw() and
 // downcasting the returned result:
 //
-//    res, err := rawConn.Exec(...)
-//    res.(mysql.Result).AllRowsAffected()
-//
+//	res, err := rawConn.Exec(...)
+//	res.(mysql.Result).AllRowsAffected()
 type Result interface {
 	driver.Result
 	// AllRowsAffected returns a slice containing the affected rows for each
@@ -43,9 +44,9 @@ func (res *mysqlResult) RowsAffected() (int64, error) {
 }
 
 func (res *mysqlResult) AllLastInsertIds() []int64 {
-	return append([]int64{}, res.insertIds...) // defensive copy
+	return slices.Clone(res.insertIds) // defensive copy
 }
 
 func (res *mysqlResult) AllRowsAffected() []int64 {
-	return append([]int64{}, res.affectedRows...) // defensive copy
+	return slices.Clone(res.affectedRows) // defensive copy
 }
